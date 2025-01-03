@@ -48,8 +48,74 @@ app.get('/read-tasks',(req, res) => {
         }
     })
 })
+app.post('/update-task', (req, res) => {
+    // Debug: Log the incoming request body
+    console.log(req.body);
 
-app.post('/update-task')
+    // Destructure the request body for better readability
+    const { task, updateId } = req.body;
+
+    // Validate input to prevent SQL errors
+    if (!task || !updateId) {
+        console.error("Invalid input: task or updateId is missing");
+        return res.status(400).send("Task and updateId are required");
+    }
+
+    // SQL query to update the task
+    const q = 'UPDATE todos SET task = ? WHERE id = ?';
+
+    // Execute the query
+    db.query(q, [task, updateId], (err, results) => {
+        if (err) {
+            console.error("Error updating todo:", err);
+            return res.status(500).send("Failed to update todo");
+        } else {
+            console.log("Todo updated successfully");
+            res.send("Todo updated successfully");
+        }
+    });
+});
+
+// app.post('/update-task', (req, res) => {
+//     console.log(req.body);
+//     const q = 'UPDATE todos SET task = ? WHERE id =?'
+//     db.query(q,[req.body.task, req.body.updateId], (err, results) =>{
+//         if(err){
+//             console.log(err);  
+//         }else{
+//             console.log('todo updated successfully');
+//         }
+
+//     })
+// })
+
+app.post('/delete-task',(req, res) =>{
+    const q = 'delete from todos where id = ?';
+    db.query(q,[req.body.id],(err, results) =>{
+        if(err){
+            console.log('Failed to delete');
+        }else{
+            console.log('Todo deleted successfully');
+            db.query('select * from todos',(e,newList) =>{
+                res.send(newList);
+            })
+        }
+    })
+})
+app.post('/complete-task',(req, res) =>{
+    const q = 'update todos set status = ? where id = ? '
+    db.query(q,['completed',req.body.id],(err,result) =>{
+
+        if(result){
+            db.query('select * from todos',(e,newList) =>{
+                res.send(newList);
+        })
+    }
+
+
+    });
+
+})
 app.listen(5000, () => {
     console.log('listening on port');
 });
