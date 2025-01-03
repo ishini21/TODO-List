@@ -3,40 +3,47 @@ import axios from "axios";
 
 function Home() {
   const [tab, setTab] = useState(1);
-  const [task, setTask] = useState("");
-  const [todos, setTodos] = useState([]);
+  const [task, setTask] = useState(null);
+  const [todos, setTodos] = useState(null);
+  const [isEdit,setIsEdit] = useState(false);
 
-  const handleTabs = (selectedTab) => {
-    setTab(selectedTab);
+
+  const handleTabs = (tab) => {
+    setTab(tab);
+    //console.log(tab);
   };
 
-  const handleAddTask = async (e) => {
+  const handleAddTask = (e) => {
     e.preventDefault();
-    if (task.trim() === "") {
-      alert("Task cannot be empty");
-      return;
-    }
-    try {
-      await axios.post("http://localhost:5000/new-task", { task });
-      setTask("");
-      fetchTasks(); // Refresh the tasks after adding
-    } catch (error) {
-      console.error("Error adding task:", error);
-    }
-  };
-
-  const fetchTasks = async () => {
-    try {
-      const res = await axios.get("http://localhost:5000/read-tasks");
+    // console.log(task);
+    axios.post("http://localhost:5000/new-task", { task })
+    .then(res => {
+      setTask(null)
       setTodos(res.data);
-    } catch (error) {
-      console.error("Error fetching tasks:", error);
-    }
-  };
-
+    })
+  }
   useEffect(() => {
-    fetchTasks();
-  }, []);
+    axios.get("http://localhost:5000/read-tasks")
+        .then((res) => setTodos(res.data))
+        .catch((err) => console.error(err));
+}, []);
+
+
+  // useEffect(() => {
+  //   axios.get("http://localhost:5000/read-tasks")
+  //    .then((res) => {
+  //     setTodos(res.data)
+  //   });
+  // },[]);
+
+  const handleEdit = (id,task) => {
+    isEdit(true)
+    //console.log(id);
+    setTask(task)
+
+    axios.post('http://localhost:5000/update-task',{task})
+
+  }
 
   return (
     <div className="bg-green-100 w-screen h-screen">
@@ -51,15 +58,15 @@ function Home() {
             type="text"
             placeholder="Enter todo"
             className="w-64 p-2 outline-none border border-blue-300 rounded-md"
-          />
+          ></input>
           <button
             onClick={handleAddTask}
-            className="bg-green-600 text-white px-4 rounded-md"
+            className="bg-green-600 text-white px-4 rounded-md "
           >
-            Add
+           {isEdit ? 'Update' : 'Add'}
           </button>
         </div>
-        <div className="flex text-sm w-80 justify-evenly mt-4">
+        <div className="flex text-sm w-80 justify-evenly mt-4 ">
           <p
             onClick={() => handleTabs(1)}
             className={`${
@@ -85,29 +92,27 @@ function Home() {
             Completed
           </p>
         </div>
-        {todos?.length > 0 ? (
-          todos.map((todo, index) => (
-            <div
-              key={todo.id || index}
-              className="flex justify-between bg-white p-3 w-80 rounded-sm mt-4"
-            >
-              <div>
-                <p className="text-lg font-semibold">{todo.task}</p>
-                <p className="text-xs text-gray-600">{todo.date}</p>
-                <p className="text-sm text-gray-600">Status: Active</p>
-              </div>
-              <div className="flex flex-col text-sm justify-start items-start">
-                <button className="text-orange-600 cursor-pointer">Edit</button>
-                <button className="text-red-600 cursor-pointer">Delete</button>
-                <button className="text-blue-600 cursor-pointer">
-                  Completed
-                </button>
-              </div>
+        {todos?.map((todo, index) => (
+          <div
+            key={todo.id || index}
+            className="flex justify-between bg-white p-3 w-80 rounded-sm mt-4"
+          >
+            <div>
+              <p className="text-lg font-semibold">{todo.task}</p>
+              <p className="text-xs text-gray-600">
+                {todo.createdAt
+                  ? new Date(todo.createdAt).toLocaleString()
+                  : "No date available"}
+              </p>
+              <p className="text-sm text-gray-600">Status: Active</p>
             </div>
-          ))
-        ) : (
-          <p className="mt-4 text-gray-500">No tasks found</p>
-        )}
+            <div className="flex flex-col text-sm justify-start items-start">
+              <button className="text-orange-600 cursor-pointer"onClick={() => handleEdit(todo.id,todo.task)}>Edit</button>
+              <button className="text-red-600 cursor-pointer">Delete</button>
+              <button className="text-blue-600 cursor-pointer">Completed</button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

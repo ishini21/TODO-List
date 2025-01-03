@@ -22,12 +22,16 @@ db.connect((err) => {
 
 app.post('/new-task', (req, res) => {
     console.log(req.body);
-    const q = 'insert into todos (task, createdAt) values (?,?)';
-    db.query(q,[req.body.task,new Date()],(err,result) => {
+    const q = 'insert into todos (task, createdAt, status) values (?,?,?)';
+    db.query(q,[req.body.task,new Date(),'active'],(err,result) => {
         if(err){
             console.log("Couldn't insert");  
         }else{
-            console.log('todo saved');   
+            console.log('todo saved');
+            const updateTasks = 'select * from todos'
+            db.query(updateTasks, (error,newList) => {
+                res.send(newList);
+            })   
         }
     })
 
@@ -45,6 +49,7 @@ app.get('/read-tasks',(req, res) => {
     })
 })
 
+app.post('/update-task')
 app.listen(5000, () => {
     console.log('listening on port');
 });
