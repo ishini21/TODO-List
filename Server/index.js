@@ -33,6 +33,18 @@ app.post('/new-task', (req, res) => {
 
 })
 
+app.get('/read-tasks',(req, res) => {
+    const q = 'select * from todos  ';
+    db.query(q, (err,results) => {
+        if(err){
+            console.log("Couldn't read tasks");  
+        }else{
+            console.log('get tasks from database successfully');
+            res.send(results);  
+        }
+    })
+})
+
 app.listen(5000, () => {
     console.log('listening on port');
 });
