@@ -8,9 +8,9 @@ app.use(cors());//resource sharing
 
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password:"abcd123",
-    database: 'sys'
+    user: '',
+    password:"",
+    database: ''
 })
 db.connect((err) => {
     if(!err) {
